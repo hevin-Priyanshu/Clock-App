@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.StopwatchFragment">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/chronometer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/_18sdp">
+
+        <!--        <Chronometer-->
+        <!--            android:id="@+id/chronometer"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_centerInParent="true"-->
+        <!--            android:textSize="@dimen/_40sdp" />-->
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/stopwatch_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00:00"
+            android:textSize="@dimen/_40sdp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btn_layout"
+        android:layout_below="@+id/chronometer_layout" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/_12sdp">
+
+        <Button
+            android:id="@+id/buttonLab"
+            android:layout_width="130dp"
+            android:layout_height="60dp"
+            android:text="Lab"
+            android:textSize="@dimen/_12ssp"
+            android:visibility="gone" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/buttonStartStop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:backgroundTint="#D1C0EA"
+            android:clickable="true"
+            android:contentDescription="@string/app_name"
+            android:focusable="true"
+            android:src="@drawable/ic_start"
+            app:shapeAppearanceOverlay="@style/Circular" />
+
+        <Button
+            android:id="@+id/buttonReset"
+            android:layout_width="130dp"
+            android:layout_height="60dp"
+            android:text="@string/reset"
+            android:textSize="@dimen/_12ssp"
+            android:visibility="gone" />
+
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</RelativeLayout>

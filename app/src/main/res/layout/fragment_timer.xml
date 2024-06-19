@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.TimerFragment">
+
+    <!--    <androidx.recyclerview.widget.RecyclerView-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent"-->
+    <!--        tools:itemCount="3"-->
+    <!--        tools:listitem="@layout/item_timer" />-->
+
+    <!-- res/layout/fragment_timer.xml -->
+
+    <LinearLayout
+        android:id="@+id/my_time_picker_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <com.shawnlin.numberpicker.NumberPicker
+            android:id="@+id/time_picker_hours"
+            android:layout_width="50dp"
+            android:layout_height="200dp"
+            app:np_fadingEdgeEnabled="false"
+            app:np_formatter="%02d"
+            app:np_max="23"
+            app:np_min="0"
+            app:np_selectedTextColor="@color/black"
+            app:np_selectedTextSize="18sp"
+            app:np_textColor="@color/black"
+            app:np_textSize="18sp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/time_picker_colon_one"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text=":"
+            android:textSize="18sp" />
+
+        <com.shawnlin.numberpicker.NumberPicker
+            android:id="@+id/time_picker_minutes"
+            android:layout_width="50dp"
+            android:layout_height="200dp"
+            app:np_fadingEdgeEnabled="false"
+            app:np_formatter="%02d"
+            app:np_max="59"
+            app:np_min="0"
+            app:np_selectedTextSize="18dp"
+            app:np_textSize="18sp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/time_picker_colon_two"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text=":"
+            android:textSize="18sp" />
+
+        <com.shawnlin.numberpicker.NumberPicker
+            android:id="@+id/time_picker_seconds"
+            android:layout_width="50dp"
+            android:layout_height="200dp"
+            app:np_fadingEdgeEnabled="false"
+            app:np_formatter="%02d"
+            app:np_max="59"
+            app:np_min="0"
+            app:np_selectedTextSize="18sp"
+            app:np_textSize="18sp" />
+
+    </LinearLayout>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/my_time_picker_holder"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:text="00:00:00"
+        android:textSize="36sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_start_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="@dimen/_50sdp"
+        android:text="Start Timer" />
+
+
+</RelativeLayout>
