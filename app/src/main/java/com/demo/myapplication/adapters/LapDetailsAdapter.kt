@@ -6,11 +6,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.demo.myapplication.databinding.ItemStopwatchBinding
-import com.demo.myapplication.models.LapDetails
+import com.demo.myapplication.models.LapDetailsModel
 
-class LapDetailsAdapter : ListAdapter<LapDetails, LapDetailsAdapter.LapDetailsViewHolder>(
-    LapDetailsDiffCallback()
-) {
+class LapDetailsAdapter : ListAdapter<LapDetailsModel, LapDetailsAdapter.LapDetailsViewHolder>(LapDetailsDiffCallback()) {
 
     inner class LapDetailsViewHolder(val binding: ItemStopwatchBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -25,12 +23,12 @@ class LapDetailsAdapter : ListAdapter<LapDetails, LapDetailsAdapter.LapDetailsVi
         holder.binding.lapDetails = lapDetails
     }
 
-    class LapDetailsDiffCallback : DiffUtil.ItemCallback<LapDetails>() {
-        override fun areItemsTheSame(oldItem: LapDetails, newItem: LapDetails): Boolean {
+    class LapDetailsDiffCallback : DiffUtil.ItemCallback<LapDetailsModel>() {
+        override fun areItemsTheSame(oldItem: LapDetailsModel, newItem: LapDetailsModel): Boolean {
             return (oldItem.lap == newItem.lap)
         }
 
-        override fun areContentsTheSame(oldItem: LapDetails, newItem: LapDetails): Boolean {
+        override fun areContentsTheSame(oldItem: LapDetailsModel, newItem: LapDetailsModel): Boolean {
             return (oldItem.lap == newItem.lap && oldItem.overallTime == newItem.overallTime && oldItem.lapTime == newItem.lapTime)
         }
     }

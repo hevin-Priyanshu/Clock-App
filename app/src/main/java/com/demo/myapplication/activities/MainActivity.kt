@@ -52,7 +52,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                 object : PermissionCallback {
                     override fun onPermissionsGranted() {
-
+                        setUp()
                     }
 
                     override fun onPermissionDeniedFirstTime() {

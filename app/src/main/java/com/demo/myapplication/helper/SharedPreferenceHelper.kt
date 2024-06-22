@@ -26,8 +26,22 @@ class SharedPreferenceHelper constructor(context: Context) {
         }
 
 
+    var isTimerRunning: Boolean
+        get() = sharedPreferences.getBoolean(IS_TIME_RUNNING, false)
+        set(value) {
+            editor.putBoolean(IS_TIME_RUNNING, value)
+        }
+
+    var lastPauseTime: Long
+        get() = sharedPreferences.getLong(LAST_TIME, 0L)
+        set(value) {
+            editor.putLong(LAST_TIME, value)
+        }
+
     companion object {
         const val SHARED_PREFERENCES_NAME = "pref"
+        const val IS_TIME_RUNNING = "is_timer_running"
+        const val LAST_TIME = "lastPauseTime"
         const val LANGUAGE_KEY = "languageKey"
         const val DEFAULT_LANGUAGE = "en"
         const val DEFAULT_FRAGMENT_KEY = "SELECTED_FRAGMENT_INDEX"

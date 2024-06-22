@@ -1,32 +1,48 @@
 package com.demo.myapplication.fragments
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.demo.myapplication.R
 import com.demo.myapplication.adapters.LapDetailsAdapter
 import com.demo.myapplication.base.BaseFragment
 import com.demo.myapplication.databinding.FragmentStopWatchBinding
+import com.demo.myapplication.events.ResetStopwatchTimerEvent
+import com.demo.myapplication.events.StopTimerEvent
+import com.demo.myapplication.events.TimerRunningEvent
 import com.demo.myapplication.extensions.gone
 import com.demo.myapplication.extensions.visible
 import com.demo.myapplication.helper.NotificationHelper
-import com.demo.myapplication.models.LapDetails
+import com.demo.myapplication.models.LapDetailsModel
+import com.demo.myapplication.models.States
+import com.demo.myapplication.models.StoreStartTimerModel
+import com.demo.myapplication.services.StopwatchService
+import com.demo.myapplication.utilities.CommonFunctions.getSharedPref
+import com.demo.myapplication.viewmodel.activitiesViewModel.MainActivityViewModel
+import com.demo.myapplication.viewmodel.factory.ViewModelFactory
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
 
-    private val notificationHelper by lazy { NotificationHelper(requireContext()) }
+        private val notificationHelper by lazy { NotificationHelper(requireContext()) }
+//    private lateinit var timer: CountDownTimer
+    private val mainActivityViewModel: MainActivityViewModel by viewModels { ViewModelFactory }
     private lateinit var lapDetailsAdapter: LapDetailsAdapter
-    private var lapDetailsList = mutableListOf<LapDetails>()
+    private var lapDetailsList = mutableListOf<LapDetailsModel>()
+    private lateinit var timerModel: StoreStartTimerModel
     private var startTime: Long = 0
     private var elapsedTime: Long = 0
     private var lapCount: Int = 1
-    private val handler = Handler(Looper.getMainLooper())
-    private lateinit var timer: CountDownTimer
-    private var isTimerRunning = false
     private var lastLapTime: Long = 0
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var state: States
 
     companion object {
         @JvmStatic
@@ -44,31 +60,57 @@ class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
 
     private val updateNotificationRunnable = object : Runnable {
         override fun run() {
-            if (isTimerRunning) {
-                elapsedTime = SystemClock.elapsedRealtime() - startTime
-                updateTimerText(elapsedTime)
-                handler.postDelayed(this, 10)
-            }
+            elapsedTime = SystemClock.elapsedRealtime() - startTime
+            updateTimerText(elapsedTime)
+            handler.postDelayed(this, 10)
         }
     }
 
     override fun initData() {
 
-        setupRecyclerView()
-        binding.buttonStartStop.setOnClickListener {
-            if (isTimerRunning) {
-                pauseChronometer()
-            } else {
-                startChronometer()
-            }
+        timerModel = mainActivityViewModel.getAllStates ?: StoreStartTimerModel()
+        state = timerModel.states
+        Log.d("", "initData: $timerModel")
+        Log.d("", "initData:--------state--------- $state")
+
+        if (state == States.RUNNING) {
+            startTime = timerModel.startTime
+            elapsedTime = SystemClock.elapsedRealtime() - startTime
+            handler.post(updateNotificationRunnable)
         }
+        setupRecyclerView()
+        handleClickListeners()
 
         binding.buttonReset.setOnClickListener {
-            resetChronometer()
+            resetTimer()
         }
 
         binding.buttonLab.setOnClickListener {
             createLapDetail()
+        }
+    }
+
+
+    private fun handleClickListeners() {
+        Log.d("", "initData:--------state---handleClickListeners------ $state")
+
+        binding.buttonStartStop.setOnClickListener {
+
+            Log.d("", "initData:-------setOnClickListener")
+            if (state == States.RUNNING) {
+                Log.d("", "initData:-------state == States.RUNNING  ${state == States.RUNNING}")
+//                val startStopIntent = Intent(requireContext(), StopwatchService::class.java)
+//                startStopIntent.action = StopwatchService.ACTION_STOP
+//                mContext.startService(startStopIntent)
+                pauseTimer()
+            } else {
+
+                Log.d("", "initData:-------state == States.stoped  ${state == States.RUNNING}")
+//                val startStopIntent = Intent(requireContext(), StopwatchService::class.java)
+//                startStopIntent.action = StopwatchService.ACTION_START
+//                mContext.startService(startStopIntent)
+                startTimer()
+            }
         }
     }
 
@@ -79,16 +121,17 @@ class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
     }
 
     private fun createLapDetail() {
-        if (isTimerRunning) {
+        if (state == States.RUNNING) {
             val currentElapsedTime = SystemClock.elapsedRealtime() - startTime
             val lapTime = calculateLapTime(currentElapsedTime)
             val overallTime = elapsedTimeToString(currentElapsedTime)
-            val lapDetails = LapDetails(lapCount++, lapTime, overallTime)
+            val lapDetails = LapDetailsModel(lapCount++, lapTime, overallTime)
+            lastLapTime = currentElapsedTime
             lapDetailsList.add(0, lapDetails)
             lapDetailsAdapter.submitList(lapDetailsList.toList())
             lapDetailsAdapter.notifyDataSetChanged()
             binding.recyclerView.scrollToPosition(0)
-            lastLapTime = currentElapsedTime
+            mainActivityViewModel.saveLapDetailsTime(lapDetailsList)
         }
     }
 
@@ -109,65 +152,29 @@ class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
     }
 
 
-//    private fun startTimer() {
-//        timer = object : CountDownTimer(Long.MAX_VALUE, 1) {
-//            override fun onTick(millisUntilFinished: Long) {
-//                val delta: Long = SystemClock.elapsedRealtime() - binding.chronometer.base
-//                val h = (delta / 1000 / 3600).toInt()
-//                val m = (delta / 1000 / 60 % 60).toInt()
-//                val s = (delta / 1000 % 60).toInt()
-//                val millisecond = (delta % 1000 / 10)
-//                val customText = String.format("%02d:%02d.%02d", m, s, millisecond)
-//                binding.chronometer.text = customText
-//            }
-//
-//            override fun onFinish() {
-//                // Restart the timer if it finishes (should not happen)
-//                startTimer()
-//            }
-//        }
-//        timer.start()
-//    }
+    private fun startTimer() {
 
-
-    private fun startChronometer() {
-        isTimerRunning = true
         startTime = SystemClock.elapsedRealtime() - elapsedTime
+        handler.post(updateNotificationRunnable)
+
         binding.apply {
             buttonLab.visible()
             buttonReset.visible()
             buttonStartStop.setImageResource(R.drawable.ic_stop)
         }
-        notificationHelper.showNotification(startTime)
-        handler.post(updateNotificationRunnable)
+
+        EventBus.getDefault().post(TimerRunningEvent(startTime))
+        // Insert a new timer
+        val newTimer = StoreStartTimerModel(
+            states = States.RUNNING,
+            startTime = startTime,
+            elapsedTime = elapsedTime
+        )
+        state = States.RUNNING
+//        notificationHelper.showNotification(0)
+        mainActivityViewModel.saveStopWatchTime(newTimer)
     }
 
-
-//    private fun startChronometer() {
-//
-//        isTimerRunning = true
-//        binding.apply {
-////            chronometer.base = SystemClock.elapsedRealtime() - offset
-//            chronometer.start()
-////            startTimer()
-//
-////            chronometer.format = "Time %s"
-//            buttonStartStop.text = "Stop"
-////            val elapsedMillis = SystemClock.elapsedRealtime() - binding.chronometer.base
-//
-//
-////            var seconds: Long
-////            chronometer.onChronometerTickListener = Chronometer.OnChronometerTickListener {
-////                seconds = ((SystemClock.elapsedRealtime() - chronometer.base) * 1000)
-////                val strTime = (seconds).toString()
-//////                onChronometerTickHandler()
-//////                lblTime.setText(strTime)
-////            }
-//
-//            notificationHelper.showNotification(chronometer.base)
-//        }
-////        handler.post(updateNotificationRunnable)
-//    }
 
     private fun updateTimerText(elapsedTime: Long) {
         val minutes = (elapsedTime / 60000).toInt()
@@ -177,36 +184,36 @@ class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
         binding.stopwatchTime.text = customText
     }
 
-    private fun pauseChronometer() {
-        if (isTimerRunning) {
-            isTimerRunning = false
+    private fun pauseTimer() {
+        if (state == States.RUNNING) {
+
             elapsedTime = SystemClock.elapsedRealtime() - startTime
+
+            // Insert a new timer
+            val newTimer = StoreStartTimerModel(
+                states = States.PAUSED,
+                startTime = startTime,
+                elapsedTime = elapsedTime
+            )
+            state = States.PAUSED
+            mainActivityViewModel.saveStopWatchTime(newTimer)
 
             binding.apply {
                 buttonLab.gone()
                 buttonStartStop.setImageResource(R.drawable.ic_start)
             }
             handler.removeCallbacks(updateNotificationRunnable)
-            notificationHelper.cancelNotification()
         }
     }
 
-//    private val updateNotificationRunnable = object : Runnable {
-//        override fun run() {
-//            val delta: Long = SystemClock.elapsedRealtime() - offset
-//            val h = (delta / 1000 / 3600).toInt()
-//            val m = (delta / 1000 / 60 % 60).toInt()
-//            val s = (delta / 1000 % 60).toInt()
-//            val millisec = (delta % 1000).toInt()
-//            val customText = String.format("%02d:%02d.%03d", m, s, millisec)
-//            binding.chronometer.text = customText
-//            handler.postDelayed(this, 1)
-//        }
-//    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun topTimerEvent(event: StopTimerEvent) {
+        pauseTimer()
+    }
 
 
-    private fun resetChronometer() {
-        isTimerRunning = false
+    private fun resetTimer() {
+        state = States.STOPPED
         binding.apply {
             buttonStartStop.setImageResource(R.drawable.ic_start)
             buttonLab.gone()
@@ -219,8 +226,16 @@ class StopwatchFragment : BaseFragment<FragmentStopWatchBinding>() {
         lastLapTime = 0
         lapDetailsList.clear()
         lapDetailsAdapter.submitList(lapDetailsList)
-        notificationHelper.cancelNotification()
         handler.removeCallbacks(updateNotificationRunnable)
+        EventBus.getDefault().post(ResetStopwatchTimerEvent())
+        mainActivityViewModel.deleteAllLapDetails()
+        mainActivityViewModel.deleteAllStates()
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mContext.getSharedPref.lastPauseTime = System.currentTimeMillis()
+        handler.removeCallbacks(updateNotificationRunnable)
+    }
 }

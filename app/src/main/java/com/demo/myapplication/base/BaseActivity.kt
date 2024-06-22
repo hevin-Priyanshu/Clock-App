@@ -1,6 +1,7 @@
 package com.demo.myapplication.base
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.demo.myapplication.helper.PermissionHelper
@@ -34,4 +35,13 @@ abstract class BaseActivity<B : ViewBinding> : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         permissionHelper.handlePermissionsResult(requestCode, permissions, grantResults)
     }
+
+    fun onBack(onBackPressed: () -> Unit) {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                onBackPressed.invoke()
+            }
+        })
+    }
+
 }

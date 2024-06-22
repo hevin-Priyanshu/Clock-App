@@ -6,6 +6,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.demo.myapplication.fragments.AlarmFragment
 import com.demo.myapplication.fragments.ClockFragment
 import com.demo.myapplication.fragments.StopwatchFragment
+import com.demo.myapplication.fragments.StopwatchFragmentNew
 import com.demo.myapplication.fragments.TimerFragment
 
 
@@ -19,7 +20,7 @@ class ViewPager2Adapter(fragmentActivity: FragmentActivity) :
             0 -> AlarmFragment.newInstance()
             1 -> ClockFragment.newInstance()
             2 -> TimerFragment.newInstance()
-            3 -> StopwatchFragment.newInstance()
+            3 -> StopwatchFragmentNew.newInstance()
             else -> AlarmFragment.newInstance()
         }
     }

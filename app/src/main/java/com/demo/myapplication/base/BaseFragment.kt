@@ -1,5 +1,7 @@
 package com.demo.myapplication.base
 
+import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +11,8 @@ import androidx.viewbinding.ViewBinding
 
 abstract class BaseFragment<B : ViewBinding> : Fragment() {
 
+    lateinit var mContext: Context
+    lateinit var mActivity: Activity
     lateinit var binding: B
     abstract fun getBindingView(): B
     abstract fun initData()
@@ -17,6 +21,8 @@ abstract class BaseFragment<B : ViewBinding> : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         binding = getBindingView()
+        mContext = requireContext()
+        mActivity = requireActivity()
         return binding.root
     }
 
